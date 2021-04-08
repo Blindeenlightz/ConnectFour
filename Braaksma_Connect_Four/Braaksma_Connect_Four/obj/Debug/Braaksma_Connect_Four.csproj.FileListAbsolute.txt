@@ -1,0 +1,7 @@
+C:\Users\jay_b\OneDrive\Documents\BVC\Term_2\SODV1202\Term_Project\Braaksma_Connect_Four\Braaksma_Connect_Four\bin\Debug\Braaksma_Connect_Four.exe.config
+C:\Users\jay_b\OneDrive\Documents\BVC\Term_2\SODV1202\Term_Project\Braaksma_Connect_Four\Braaksma_Connect_Four\bin\Debug\Braaksma_Connect_Four.exe
+C:\Users\jay_b\OneDrive\Documents\BVC\Term_2\SODV1202\Term_Project\Braaksma_Connect_Four\Braaksma_Connect_Four\bin\Debug\Braaksma_Connect_Four.pdb
+C:\Users\jay_b\OneDrive\Documents\BVC\Term_2\SODV1202\Term_Project\Braaksma_Connect_Four\Braaksma_Connect_Four\obj\Debug\Braaksma_Connect_Four.csprojAssemblyReference.cache
+C:\Users\jay_b\OneDrive\Documents\BVC\Term_2\SODV1202\Term_Project\Braaksma_Connect_Four\Braaksma_Connect_Four\obj\Debug\Braaksma_Connect_Four.csproj.CoreCompileInputs.cache
+C:\Users\jay_b\OneDrive\Documents\BVC\Term_2\SODV1202\Term_Project\Braaksma_Connect_Four\Braaksma_Connect_Four\obj\Debug\Braaksma_Connect_Four.exe
+C:\Users\jay_b\OneDrive\Documents\BVC\Term_2\SODV1202\Term_Project\Braaksma_Connect_Four\Braaksma_Connect_Four\obj\Debug\Braaksma_Connect_Four.pdb
