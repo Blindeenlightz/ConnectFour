@@ -1,9 +1,5 @@
 ﻿/*
- * Adding a turn counter to Gameplay() class negated the need for Player(int designation).
- * Added abstract to Player class and created AI & Human inherited classes.
- * Moved Token class to property of Player instead.
- * Added user selection to console (Move to a class later?)
- * Deleted Controller class (Might add it back later if needed)
+
  */
 
 using System;
@@ -54,11 +50,15 @@ namespace Braaksma_Connect_Four
         public int Rows { get; set; }
         public int Columns { get; set; }
 
-        public Board(List<char> cells, int rows, int columns)
+        public Board(int rows, int columns)
         {
-            Cells = cells;
             Rows = rows;
             Columns = columns;
+            Cells = new List<char>();
+            for (int i = 0; i <= Rows * Columns; i++)
+            {
+                Cells.Add('#');
+            }
         }
         public void DrawBoard()
         {
@@ -81,7 +81,7 @@ namespace Braaksma_Connect_Four
 
     class Gameplay
     {
-        static int turnCount;
+        public static int turnCount;
         Board currentGameBoard;
 
         public Gameplay(Board currentGameBoard)
@@ -91,26 +91,24 @@ namespace Braaksma_Connect_Four
 
         public void Turn(Player currentPlayer)
         {
-            if (turnCount != 0 && turnCount % 2 == 0)
-                Console.WriteLine("Player 1's turn");
-            else
-                Console.WriteLine("Player 2's turn");
-
+            Console.WriteLine("It's {0}'s turn!", currentPlayer.Name);
             turnCount++;
         }
 
-        public void InsertToken(Player currentPlayer, int selection)
+        public void InsertToken(Player currentPlayer, int selection,  Board currentGameBoard) //doesn't change the global currentGameBoard
         {
-
-            for (int i = selection; i < currentGameBoard.Columns; i++)
+            //Replace the blank square with the players token in the gameboard (<List>)
+            for (int i = currentGameBoard.Cells.Count; i > 0 ; i--)
             {
-                for (int j = 0; j < currentGameBoard.Rows; j++)
-                    Console.Write("{0} ", currentGameBoard.Cells[i]);
+                if(currentGameBoard.Cells[i - 1] == currentPlayer.Token)
+                {
+                    currentGameBoard.Cells.RemoveAt(i - 1);
+                    currentGameBoard.Cells.Insert(i - 1 , currentPlayer.Token);
+                }
 
-                Console.Write("\n");
+                else
+                    currentGameBoard.Cells.Add('#');
             }
-
-
         }
     }
 
@@ -119,27 +117,104 @@ namespace Braaksma_Connect_Four
         static void Main(string[] args)
         {
             List<char> board = new List<char>();
+            //Choose the size of board to play with
             int numberOfRows = 7;
             int numberOfColumns = 6;
-            int numberOfCells = numberOfRows * numberOfColumns;
             int choice;
+            int numberPlayers;
+            bool winner = false;
 
+            Console.WriteLine("One player game or Two? (1 / 2)");
+            int.TryParse(Console.ReadLine(), out numberPlayers);
 
-            for (int i = 0; i <= numberOfCells; i++)
+            //Validate number of players
+            while (numberPlayers < 1 && numberPlayers > 2)
             {
-                board.Add('#');
+                Console.WriteLine("Please enter the number of players. Either 1 or 2");
+                int.TryParse(Console.ReadLine(), out numberPlayers);
+                Console.WriteLine(numberPlayers);
             }
 
-            Board gameBoard = new Board(board, numberOfRows, numberOfColumns);
 
-            gameBoard.DrawBoard();
 
-            int.TryParse(Console.ReadLine(), out choice);
-
-            while (choice < 1 || choice > numberOfRows)
+            //Single Player Game
+            if(numberPlayers == 1)
             {
-                Console.WriteLine("Please enter a valid number between 1 - {0}", numberOfRows);
-                int.TryParse(Console.ReadLine(), out choice);
+                    Console.WriteLine("Enter your name");
+                    string player1Name = Console.ReadLine();
+
+                    Console.WriteLine("What difficulty would you like? ( 1 / 2 / 3");
+                    int difficulty = Console.Read();
+                
+                    //Validate difficulty
+                    while(difficulty != 1 || difficulty != 2 || difficulty != 3)
+                    {
+                        Console.WriteLine("Please enter 1 or 2 or 3");
+                        difficulty = Console.Read();
+                    }
+                
+                    Player player1 = new Human(player1Name, 'X');
+                    Player player2= new AI("Computer", difficulty, '0');
+
+                    Board gameBoard = new Board(numberOfRows, numberOfColumns);
+
+                do 
+                {
+                    gameBoard.DrawBoard();
+
+                    //Get player selection
+                    int.TryParse(Console.ReadLine(), out choice);
+
+                    //Validate player selection
+                    while (choice < 1 || choice > numberOfRows)
+                    {
+                        Console.WriteLine("Please enter a valid number between 1 - {0}", numberOfRows);
+                        int.TryParse(Console.ReadLine(), out choice);
+                    }
+
+
+                }while(!winner);
+            }
+
+            //Multiplayer Game
+            else if(numberPlayers == 2)
+            {
+                    Console.WriteLine("Enter your name player 1");
+                    string player1Name = Console.ReadLine();
+
+                    Console.WriteLine("Enter your name player 2");
+                    string player2Name = Console.ReadLine();
+
+                    Player player1 = new Human(player1Name, 'X');
+                    Player player2 = new Human(player2Name, 'X');
+            
+                    Board gameBoard = new Board(numberOfRows, numberOfColumns);
+                    Gameplay multiplayerGame = new Gameplay(gameBoard);
+                
+                do
+                {
+                    if(Gameplay.turnCount % 2 == 0)
+                        multiplayerGame.Turn(player1);
+                    else
+                        multiplayerGame.Turn(player2);
+
+                    gameBoard.DrawBoard();
+
+                    //Get player selection
+                    int.TryParse(Console.ReadLine(), out choice);
+
+                    //Validate player selection
+                    while (choice < 1 || choice > numberOfRows)
+                    {
+                        Console.WriteLine("Please enter a valid number between 1 - {0}", numberOfRows);
+                        int.TryParse(Console.ReadLine(), out choice);
+                    }
+
+                    if (Gameplay.turnCount % 2 == 0)
+                        multiplayerGame.InsertToken(player1, choice, gameBoard);
+                    else
+                        multiplayerGame.InsertToken(player2, choice, gameBoard);
+                } while (!winner);
             }
         }
     }
