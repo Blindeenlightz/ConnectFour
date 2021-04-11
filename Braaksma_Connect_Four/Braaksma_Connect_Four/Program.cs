@@ -55,38 +55,22 @@ namespace Braaksma_Connect_Four
             Rows = rows;
             Columns = columns;
             Cells = new List<char>();
-            for (int i = 0; i <= Rows * Columns; i++)
+            for (int i = 0; i < Rows * Columns; i++)
             {
                 Cells.Add('#');
             }
         }
-        public void DrawBoard()
-        {
-            for (int i = 0; i < Columns; i++)
-            {
-                for (int j = 0; j < Rows; j++)
-                    Console.Write("{0} ", Cells[i]);
 
-                Console.Write("\n");
-            }
-            for (int i = 0; i <= Columns; i++)
-            {
-                Console.Write("{0} ", i + 1);
-
-            }
-            Console.WriteLine("\n\nSelect a number between 1 - {0} to place your piece", Rows);
-        }
     }
 
 
-    class Gameplay
+    class Gameplay : Board
     {
         public static int turnCount;
-        Board currentGameBoard;
 
-        public Gameplay(Board currentGameBoard)
+        public Gameplay(int rows, int columns) : base(rows, columns)
         {
-            this.currentGameBoard = currentGameBoard;
+            turnCount = 0;
         }
 
         public void Turn(Player currentPlayer)
@@ -95,19 +79,40 @@ namespace Braaksma_Connect_Four
             turnCount++;
         }
 
-        public void InsertToken(Player currentPlayer, int selection,  Board currentGameBoard) //doesn't change the global currentGameBoard
+        public void DrawBoard()
+        {
+            int counter = 0;
+            foreach (char item in Cells)
+            {       
+                if(counter % Columns == 0 && counter != 0)
+                    Console.Write("\n");
+
+                Console.Write("{0} ", item);
+                
+                counter++;
+            }
+
+            Console.Write("\n");
+
+            for (int i = 0; i <= Rows; i++)
+            {
+                Console.Write("{0} ", i + 1);
+
+            }
+            Console.WriteLine("\n\nSelect a number between 1 - {0} to place your piece", Columns);
+        }
+
+        public void InsertToken(Player currentPlayer, int selection) //doesn't change the global currentGameBoard
         {
             //Replace the blank square with the players token in the gameboard (<List>)
-            for (int i = currentGameBoard.Cells.Count; i > 0 ; i--)
+            for (int i = (Cells.Count - 1) - (Columns - selection); i > 0 ; i -= Columns)
             {
-                if(currentGameBoard.Cells[i - 1] == currentPlayer.Token)
+                if(Cells[i] != currentPlayer.Token)
                 {
-                    currentGameBoard.Cells.RemoveAt(i - 1);
-                    currentGameBoard.Cells.Insert(i - 1 , currentPlayer.Token);
+                    Cells[i] = currentPlayer.Token;
+                    Console.WriteLine(Cells[i]);
+                    break;
                 }
-
-                else
-                    currentGameBoard.Cells.Add('#');
             }
         }
     }
@@ -118,8 +123,8 @@ namespace Braaksma_Connect_Four
         {
             List<char> board = new List<char>();
             //Choose the size of board to play with
-            int numberOfRows = 7;
-            int numberOfColumns = 6;
+            int numberOfColumns = 7;
+            int numberOfRows = 6;
             int choice;
             int numberPlayers;
             bool winner = false;
@@ -156,19 +161,20 @@ namespace Braaksma_Connect_Four
                     Player player1 = new Human(player1Name, 'X');
                     Player player2= new AI("Computer", difficulty, '0');
 
-                    Board gameBoard = new Board(numberOfRows, numberOfColumns);
+                    Gameplay singlePlayerGame = new Gameplay(numberOfRows, numberOfColumns);
 
-                do 
+
+                do
                 {
-                    gameBoard.DrawBoard();
+                    singlePlayerGame.DrawBoard();
 
                     //Get player selection
                     int.TryParse(Console.ReadLine(), out choice);
 
                     //Validate player selection
-                    while (choice < 1 || choice > numberOfRows)
+                    while (choice < 1 || choice > numberOfColumns)
                     {
-                        Console.WriteLine("Please enter a valid number between 1 - {0}", numberOfRows);
+                        Console.WriteLine("Please enter a valid number between 1 - {0}", numberOfColumns);
                         int.TryParse(Console.ReadLine(), out choice);
                     }
 
@@ -186,10 +192,9 @@ namespace Braaksma_Connect_Four
                     string player2Name = Console.ReadLine();
 
                     Player player1 = new Human(player1Name, 'X');
-                    Player player2 = new Human(player2Name, 'X');
+                    Player player2 = new Human(player2Name, '0');
             
-                    Board gameBoard = new Board(numberOfRows, numberOfColumns);
-                    Gameplay multiplayerGame = new Gameplay(gameBoard);
+                    Gameplay multiplayerGame = new Gameplay(numberOfRows, numberOfColumns);
                 
                 do
                 {
@@ -198,22 +203,23 @@ namespace Braaksma_Connect_Four
                     else
                         multiplayerGame.Turn(player2);
 
-                    gameBoard.DrawBoard();
+                    multiplayerGame.DrawBoard();
 
                     //Get player selection
                     int.TryParse(Console.ReadLine(), out choice);
 
                     //Validate player selection
-                    while (choice < 1 || choice > numberOfRows)
+                    while (choice < 1 || choice > numberOfColumns)
                     {
-                        Console.WriteLine("Please enter a valid number between 1 - {0}", numberOfRows);
+                        Console.WriteLine("Please enter a valid number between 1 - {0}", numberOfColumns);
                         int.TryParse(Console.ReadLine(), out choice);
                     }
 
                     if (Gameplay.turnCount % 2 == 0)
-                        multiplayerGame.InsertToken(player1, choice, gameBoard);
+                        multiplayerGame.InsertToken(player1, choice);
                     else
-                        multiplayerGame.InsertToken(player2, choice, gameBoard);
+                        multiplayerGame.InsertToken(player2, choice);
+
                 } while (!winner);
             }
         }
