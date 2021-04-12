@@ -89,7 +89,7 @@ namespace Braaksma_Connect_Four
 
                 //Add formatting for gamePieces
                 if(item == player1Token || item == player2Token)
-                    Console.Write(" {0} ", item);
+                    Console.Write("|{0}|", item);
                 
                 else
                     Console.Write("{0}", item);
@@ -151,29 +151,34 @@ namespace Braaksma_Connect_Four
                         return true;
                 }
 
-                if (i % 7 == 0)
-                {
-                    for (int k = i; k < 4; k++)
+                //if (i % 7 == 0)
+                //{
+                    for (int j = i; j < 3; j++)
                     {
-                        //Validate a win is within range
-                        if (i + ((Columns + 1) * 3) < Cells.Count)
+                    
+                        for (int k = i * j ; k < 4; k++)
                         {
-                            //Check Diagonal
-                            if (Cells[k] == player.Token && Cells[k + (Columns + 1)] == player.Token && Cells[k + ((Columns + 1) * 2)] == player.Token && Cells[k + ((Columns + 1) * 3)] == player.Token)
-                                return true;
+                            //Validate a win is within range
+                            if (k + ((Columns + 1) * 3) < Cells.Count)
+                            {
+                                //Check Diagonal
+                                if (Cells[k] == player.Token && Cells[k + (Columns + 1)] == player.Token && Cells[k + ((Columns + 1) * 2)] == player.Token && Cells[k + ((Columns + 1) * 3)] == player.Token)
+                                    return true;
+                            }
                         }
+
                     }
-                    for (int j = i + 3; j < i + 7; j++)
+                    for (int l = i + 3; l < i + 7; l++)
                     {
                         //Validate a win is within range
-                        if (i + ((Columns - 1) * 3) < Cells.Count)
+                        if (l + ((Columns - 1) * 3) < Cells.Count)
                         {
                             //Check reverse Diagonal
-                            if (Cells[j] == player.Token && Cells[j + (Columns - 1)] == player.Token && Cells[j + ((Columns - 1) * 2)] == player.Token && Cells[j + ((Columns - 1) * 3)] == player.Token)
+                            if (Cells[l] == player.Token && Cells[l + (Columns - 1)] == player.Token && Cells[l + ((Columns - 1) * 2)] == player.Token && Cells[l + ((Columns - 1) * 3)] == player.Token)
                                 return true;
                         }
                     }
-                }
+                //}
             }
             return false;
         }
