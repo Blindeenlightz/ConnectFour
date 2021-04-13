@@ -1,5 +1,4 @@
 ﻿/*
-
  */
 
 using System;
@@ -133,18 +132,8 @@ namespace Braaksma_Connect_Four
         public bool Winner(Player player)
         {
 
-            for(int i = 0; i < Cells.Count; i++)
+            for(int i = 0; i < Rows; i++)
             {
-                //Check horizontal
-                //Validate a win is within range
-                if(i + 3 < Cells.Count && ((i + 3) % Columns) != 0)
-                {
-                    if (Cells[i] == player.Token && Cells[i + 1] == player.Token && Cells[i + 2] == player.Token && Cells[i + 3] == player.Token)
-                    {
-                        Console.WriteLine("Horizontal Win!");
-                        return true;
-                    }
-                }
 
                 //Check Vertical
                 //Validate a win is within range
@@ -156,44 +145,55 @@ namespace Braaksma_Connect_Four
                         return true;
                     }
                 }
+           
 
-                //if (i % 7 == 0)
-                //{
-                    for (int j = i; j < 3; j++)
+                for (int l = i; l < i * Columns; l++)
+                {
+                    //Validate a win is within range
+                    if (l + ((Columns - 1) * 3) < (Cells.Count - 3))
                     {
-                    
-                        for (int k = i * j ; k < 4; k++)
-                        {
-                            //Validate a win is within range
-                            if (k + ((Columns + 1) * 3) < Cells.Count)
-                            {
-                                //Check Diagonal
-                                if (Cells[k] == player.Token && Cells[k + (Columns + 1)] == player.Token && Cells[k + ((Columns + 1) * 2)] == player.Token && Cells[k + ((Columns + 1) * 3)] == player.Token)
-                            {
-                                Console.WriteLine("Diagonal Win!");
-                                return true;
-                            }
-                        }
-                        }
-
-                    }
-                    for (int l = i + 3; l < i + 7; l++)
-                    {
-                        //Validate a win is within range
-                        if (l + ((Columns - 1) * 3) < (Cells.Count - Columns + 1))
-                        {
-                            //Check reverse Diagonal
-                            if (Cells[l] == player.Token && Cells[l + (Columns - 1)] == player.Token && Cells[l + ((Columns - 1) * 2)] == player.Token && Cells[l + ((Columns - 1) * 3)] == player.Token)
+                        //Check reverse Diagonal
+                        if (Cells[l] == player.Token && Cells[l + (Columns - 1)] == player.Token && Cells[l + ((Columns - 1) * 2)] == player.Token && Cells[l + ((Columns - 1) * 3)] == player.Token)
                         {
                             Console.WriteLine("Reverse Diagonal Win!");
                             return true;
                         }
                     }
-               }
+                }
+                
+
+
+                //These wins can't take place starting from the last 3 columns
+                for (int m = i * Columns; m < ((i + 1) * Columns) - 3; m++)
+                {
+                    //Check horizontal
+                    //Validate a win is within range
+                    if (m + 3 < Cells.Count)
+                    {
+                        if (Cells[m] == player.Token && Cells[m + 1] == player.Token && Cells[m + 2] == player.Token && Cells[m + 3] == player.Token)
+                        {
+                            Console.WriteLine("Horizontal Win!");
+                            return true;
+                        }
+                    }
+
+                    //Validate a win is within range
+                    if (m + ((Columns + 1) * 3) < Cells.Count)
+                    {
+                        //Check Diagonal
+                        if (Cells[m] == player.Token && Cells[m + (Columns + 1)] == player.Token && Cells[m + ((Columns + 1) * 2)] == player.Token && Cells[m + ((Columns + 1) * 3)] == player.Token)
+                        {
+                            Console.WriteLine("Diagonal Win!");
+                            return true;
+                        }
+                    }
+                }
             }
             return false;
         }
     }
+
+
 
 
     class Program
@@ -227,8 +227,12 @@ namespace Braaksma_Connect_Four
                 //Single Player Game
                 if (numberPlayers == 1)
                 {
-                    Console.WriteLine("Enter your name");
-                    string player1Name = Console.ReadLine();
+                    string player1Name = "";
+                    do
+                    {
+                        Console.WriteLine("Enter your name");
+                        player1Name = Console.ReadLine();
+                    } while (player1Name == "");
 
                     Console.WriteLine("What difficulty would you like? ( 1 / 2 / 3");
                     int difficulty = Console.Read();
@@ -268,11 +272,20 @@ namespace Braaksma_Connect_Four
                 //Multiplayer Game
                 else if (numberPlayers == 2)
                 {
-                    Console.WriteLine("Enter your name player 1");
-                    string player1Name = Console.ReadLine();
-
-                    Console.WriteLine("Enter your name player 2");
-                    string player2Name = Console.ReadLine();
+                    string player1Name = "";
+                    string player2Name = "";
+                    
+                    do
+                    {
+                        Console.WriteLine("Enter your name player 1");
+                        player1Name = Console.ReadLine();
+                    } while (player1Name == "");
+                    
+                    do
+                    {
+                        Console.WriteLine("Enter your name player 2");
+                        player2Name = Console.ReadLine();
+                    } while (player2Name == "");
 
                     Player player1 = new Human(player1Name, "X");
                     Player player2 = new Human(player2Name, "0");
