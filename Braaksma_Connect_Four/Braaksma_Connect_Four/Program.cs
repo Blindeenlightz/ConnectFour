@@ -1,4 +1,5 @@
 ﻿/*
+
  */
 
 using System;
@@ -30,6 +31,11 @@ namespace Braaksma_Connect_Four
         public AI(string name, int difficulty, string token) : base(name = "Computer", token = "0")
         {
             _difficulty = difficulty;
+        }
+
+        public string PickNextMove()
+        {
+
         }
     }
 
@@ -111,7 +117,7 @@ namespace Braaksma_Connect_Four
             do
             {
                 //Replace the blank square with the players token in the gameboard (<List>)
-                for (int i = (Cells.Count - 1) - (Columns - selection); i > 0; i -= Columns)
+                for (int i = (Cells.Count - 1) - (Columns - selection); i >= 0; i -= Columns)
                 {
                     if (Cells[i] != currentPlayer.Token && Cells[i] == "|_|")
                     {
@@ -126,6 +132,13 @@ namespace Braaksma_Connect_Four
                     Console.WriteLine("That column is full please pick another");
                     int.TryParse(Console.ReadLine(), out selection);
                 }
+                //Validate player selection
+                while (selection < 1 || selection > Columns)
+                {
+                    Console.WriteLine("Please enter a valid number between 1 - {0}", Columns);
+                    int.TryParse(Console.ReadLine(), out selection);
+                }
+
             } while (columnFull);
         }
 
@@ -134,26 +147,29 @@ namespace Braaksma_Connect_Four
 
             for(int i = 0; i < Rows; i++)
             {
-
                 //Check Vertical
-                //Validate a win is within range
-                if (i + (Columns * 3) < Cells.Count)
+                for (int j = 0; j < i * Columns; j++)
                 {
-                    if (Cells[i] == player.Token && Cells[i + Columns] == player.Token && Cells[i + (Columns * 2)] == player.Token && Cells[i + (Columns * 3)] == player.Token)
+                    //Validate a win is within range
+                    if (j + (Columns * 3) < Cells.Count)
                     {
-                        Console.WriteLine("Vertical Win!");
-                        return true;
+                        if (Cells[j] == player.Token && Cells[j + Columns] == player.Token && Cells[j + (Columns * 2)] == player.Token && Cells[j + (Columns * 3)] == player.Token)
+                        {
+                            Console.WriteLine("Vertical Win!");
+                            return true;
+                        }
                     }
                 }
            
 
-                for (int l = i; l < i * Columns; l++)
+                //Check reverse diagonal
+                //This win can't take place starting form the first 3 columns
+                for (int j = (i * Columns) + 3; j < (i + 1) * Columns; j++)
                 {
                     //Validate a win is within range
-                    if (l + ((Columns - 1) * 3) < (Cells.Count - 3))
+                    if (j + ((Columns - 1) * 3) < (Cells.Count - 3))
                     {
-                        //Check reverse Diagonal
-                        if (Cells[l] == player.Token && Cells[l + (Columns - 1)] == player.Token && Cells[l + ((Columns - 1) * 2)] == player.Token && Cells[l + ((Columns - 1) * 3)] == player.Token)
+                        if (Cells[j] == player.Token && Cells[j + (Columns - 1)] == player.Token && Cells[j + ((Columns - 1) * 2)] == player.Token && Cells[j + ((Columns - 1) * 3)] == player.Token)
                         {
                             Console.WriteLine("Reverse Diagonal Win!");
                             return true;
@@ -162,26 +178,25 @@ namespace Braaksma_Connect_Four
                 }
                 
 
-
                 //These wins can't take place starting from the last 3 columns
-                for (int m = i * Columns; m < ((i + 1) * Columns) - 3; m++)
+                for (int j = i * Columns; j < ((i + 1) * Columns) - 3; j++)
                 {
                     //Check horizontal
                     //Validate a win is within range
-                    if (m + 3 < Cells.Count)
+                    if (j + 3 < Cells.Count)
                     {
-                        if (Cells[m] == player.Token && Cells[m + 1] == player.Token && Cells[m + 2] == player.Token && Cells[m + 3] == player.Token)
+                        if (Cells[j] == player.Token && Cells[j + 1] == player.Token && Cells[j + 2] == player.Token && Cells[j + 3] == player.Token)
                         {
                             Console.WriteLine("Horizontal Win!");
                             return true;
                         }
                     }
 
+                    //Check diagonal
                     //Validate a win is within range
-                    if (m + ((Columns + 1) * 3) < Cells.Count)
+                    if (j + ((Columns + 1) * 3) < Cells.Count)
                     {
-                        //Check Diagonal
-                        if (Cells[m] == player.Token && Cells[m + (Columns + 1)] == player.Token && Cells[m + ((Columns + 1) * 2)] == player.Token && Cells[m + ((Columns + 1) * 3)] == player.Token)
+                        if (Cells[j] == player.Token && Cells[j + (Columns + 1)] == player.Token && Cells[j + ((Columns + 1) * 2)] == player.Token && Cells[j + ((Columns + 1) * 3)] == player.Token)
                         {
                             Console.WriteLine("Diagonal Win!");
                             return true;
@@ -334,7 +349,7 @@ namespace Braaksma_Connect_Four
                         int numberOfCellsEmpty = multiplayerGame.Cells.IndexOf("|_|");
                         if (numberOfCellsEmpty == -1)
                         {
-                            Console.WriteLine("{0} and (1} have TIED!!", player1.Name, player2.Name);
+                            Console.WriteLine("{0} and {1} have TIED!!", player1.Name, player2.Name);
                             break;
                         }
 
