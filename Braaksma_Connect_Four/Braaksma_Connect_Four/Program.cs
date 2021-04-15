@@ -1,5 +1,5 @@
-﻿/*
-
+﻿/* 
+        
  */
 
 using System;
@@ -33,8 +33,98 @@ namespace Braaksma_Connect_Four
             _difficulty = difficulty;
         }
 
-        public string PickNextMove()
+        public int PickNextMove(Gameplay currentGame, Player opponent)
         {
+            //int nextMove = 1;
+            Gameplay tempHolder;
+
+            //Create a simulated game to test states without affecting original game
+            Gameplay simulatedGame = new Gameplay(currentGame);
+
+            Random random = new Random();
+            if (_difficulty == 1)
+            {
+                return random.Next(1, 8);
+            }
+
+
+            //Medium Difficulty
+            else if(_difficulty == 2)
+            {
+
+                for (int i = 0; i < simulatedGame.Rows; i++)
+                {
+                    //Check if any next move will result in a win
+                    for (int j = 1; j <= simulatedGame.Columns; j++)
+                    {
+                        if (simulatedGame.Cells[j] == "|_|")
+                        {
+                            tempHolder = new Gameplay(simulatedGame);
+
+                            //Simulate inserting a token
+                            for (int k = (simulatedGame.Cells.Count - 1) - (simulatedGame.Columns - j); k >= 0; k -= simulatedGame.Columns)
+                            {
+                                if (simulatedGame.Cells[k] != this.Token && simulatedGame.Cells[k] == "|_|")
+                                {
+                                    simulatedGame.Cells[k] = this.Token;
+                                    break;
+                                }
+                            }
+
+                            //If the placement results in a win return it
+                            if (simulatedGame.Winner(this))
+                            {
+                                Console.WriteLine("Win returned");
+                                return j;
+                            }
+
+                            //Reset the simulated gameboard to it's original state
+                            simulatedGame = new Gameplay(tempHolder);
+
+                        }
+                    }
+
+                    //Check if any next move will result in opponent win
+                    for (int j = 1; j <= simulatedGame.Columns; j++)
+                    {
+                        if (simulatedGame.Cells[j] == "|_|")
+                        {
+                            tempHolder = new Gameplay(simulatedGame);
+
+                            //Simulate inserting a token
+                            for (int k = (simulatedGame.Cells.Count - 1) - (simulatedGame.Columns - j); k >= 0; k -= simulatedGame.Columns)
+                            {
+                                if (simulatedGame.Cells[k] != opponent.Token && simulatedGame.Cells[k] == "|_|")
+                                {
+                                    simulatedGame.Cells[k] = opponent.Token;
+                                    break;
+                                }
+                            }
+                            Console.WriteLine();
+                            simulatedGame.DrawBoard(this.Token, opponent.Token);
+
+                            //If the placement results in a win block it
+                            if (simulatedGame.Winner(opponent))
+                            {
+                                Console.WriteLine("Opponent Win Block");
+                                return j;
+                            }
+
+                            //Reset the simulated gameboard to it's original state
+                            simulatedGame = new Gameplay(tempHolder);
+
+                        }
+                    }
+
+                }
+
+                    //If all strategies are null, place a random token
+                    return random.Next(1, 8);
+            }
+
+            //Hard difficulty 
+            else
+                return random.Next(1, 8);
 
         }
     }
@@ -67,6 +157,16 @@ namespace Braaksma_Connect_Four
             }
         }
 
+        //Copy Constructor
+        public Board(Board toBeCopied)
+        {
+            Rows = (toBeCopied.Rows);
+            Columns = toBeCopied.Columns;
+            Cells = new List<string>();
+            foreach (string item in toBeCopied.Cells)
+                Cells.Add(item);
+        }
+
     }
 
 
@@ -74,9 +174,16 @@ namespace Braaksma_Connect_Four
     {
         public static int turnCount;
 
+
         public Gameplay(int rows, int columns) : base(rows, columns)
         {
             turnCount = 0;
+        }
+
+        //Copy Constructor
+        public Gameplay(Gameplay toBeCopied) : base(toBeCopied)
+        {
+
         }
 
         public void Turn(Player currentPlayer)
@@ -243,6 +350,7 @@ namespace Braaksma_Connect_Four
                 if (numberPlayers == 1)
                 {
                     string player1Name = "";
+                    int difficulty = 0;
                     do
                     {
                         Console.WriteLine("Enter your name");
@@ -250,37 +358,77 @@ namespace Braaksma_Connect_Four
                     } while (player1Name == "");
 
                     Console.WriteLine("What difficulty would you like? ( 1 / 2 / 3");
-                    int difficulty = Console.Read();
+                    int.TryParse(Console.ReadLine(), out difficulty);
 
                     //Validate difficulty
-                    while (difficulty != 1 || difficulty != 2 || difficulty != 3)
+                    while (difficulty < 1 || difficulty > 3)
                     {
                         Console.WriteLine("Please enter 1 or 2 or 3");
-                        difficulty = Console.Read();
+                        int.TryParse(Console.ReadLine(), out difficulty);
                     }
 
-                    Player player1 = new Human(player1Name, "X");
-                    Player player2 = new AI("Computer", difficulty, "0");
+                    Human player1 = new Human(player1Name, "X");
+                    AI player2 = new AI("Computer", difficulty, "0");
 
                     Gameplay singlePlayerGame = new Gameplay(numberOfRows, numberOfColumns);
 
                     do
                     {
+                        if (Gameplay.turnCount % 2 == 0)
+                            singlePlayerGame.Turn(player1);
+                        else
+                            singlePlayerGame.Turn(player2);
+
                         singlePlayerGame.DrawBoard(player1.Token, player2.Token);
-                        Console.WriteLine("\n\nSelect a number between 1 - {0} to place your piece", singlePlayerGame.Columns);
 
-                        //Get player selection
-                        int.TryParse(Console.ReadLine(), out choice);
-
-                        //Validate player selection
-                        while (choice < 1 || choice > numberOfColumns)
+                        //Human player game
+                        if (Gameplay.turnCount % 2 == 0)
                         {
-                            Console.WriteLine("Please enter a valid number between 1 - {0}", numberOfColumns);
+                            Console.WriteLine("\n\nSelect a number between 1 - {0} to place your piece", singlePlayerGame.Columns);
+
+                            //Get player selection
                             int.TryParse(Console.ReadLine(), out choice);
+
+                            //Validate player selection
+                            while (choice < 1 || choice > numberOfColumns)
+                            {
+                                Console.WriteLine("Please enter a valid number between 1 - {0}", numberOfColumns);
+                                int.TryParse(Console.ReadLine(), out choice);
+                            }
+
+                            singlePlayerGame.InsertToken(player1, choice);
+                            winner = singlePlayerGame.Winner(player1);
+                            theWinner = player1.Name;
                         }
 
+                        else
+                        {
+                            choice = player2.PickNextMove(singlePlayerGame, player1);
+                            singlePlayerGame.InsertToken(player2, choice);
+                            winner = singlePlayerGame.Winner(player2);
+                            theWinner = player2.Name;
+                        }
 
+                        //Console formatting
+                        Console.WriteLine();
+                        Console.WriteLine();
+
+                        int numberOfCellsEmpty = singlePlayerGame.Cells.IndexOf("|_|");
+                        if (numberOfCellsEmpty == -1)
+                        {
+                            Console.WriteLine("{0} and {1} have TIED!!", player1.Name, player2.Name);
+                            break;
+                        }
+
+                        Gameplay.turnCount++;
                     } while (!winner);
+
+
+                    if (winner)
+                    {
+                        singlePlayerGame.DrawBoard(player1.Token, player2.Token);
+                        Console.WriteLine("\nCongratulations {0}!!\nYOU WIN!!", theWinner);
+                    }
                 }
 
 
@@ -365,13 +513,13 @@ namespace Braaksma_Connect_Four
                     }
          
                     
+                }
                     Console.WriteLine("Would you like to play agian? (Y / N)");
                     
                     if (Console.ReadLine().ToUpper().Substring(0,1) == "Y")
                         again = true;
                     else
                         again = false;
-                }
             } while (again);
         }
     }
