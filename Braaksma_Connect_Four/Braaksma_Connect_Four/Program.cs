@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Braaksma_Connect_Four
 {
-    abstract class Player
+    public abstract class Player
     {
         public string Name { get; set; }
         public string Token { get; set; }
@@ -25,7 +25,7 @@ namespace Braaksma_Connect_Four
     }
 
 
-    class AI : Player
+    public class AI : Player
     {
         private int _difficulty;
         public AI(string name, int difficulty, string token) : base(name = "Computer", token = "0")
@@ -33,428 +33,205 @@ namespace Braaksma_Connect_Four
             _difficulty = difficulty;
         }
 
-        private int PickNextMove(Gameplay currentGame, Player opponent)
+
+        public int PickNextMove(Gameplay currentGame, Player opponent)
         {
             //int nextMove = 1;
-             Gameplay tempHolder;
+            Gameplay tempHolder;
+            List<int> notFull = new List<int>() { 1, 2, 3, 4, 5, 6, 7 };
 
             //Create a simulation to test states without affecting original game
             Gameplay simulatedGame = new Gameplay(currentGame);
 
-
+            //Easy Difficluty
             Random random = new Random();
             if (_difficulty == 1)
             {
-                return random.Next(1, 8);
+                for(int i=0;i < simulatedGame.Columns;i++)
+                {
+                    //Check if a column is full (to remove as option for random placement)
+                    if (simulatedGame.Cells[i - 1] != "|_|")
+                        notFull.Remove(i);
+                }
+
+                //If all strategies are null, place a random token in an available column
+                int randomChoice = random.Next(notFull.Count);
+                return notFull[randomChoice];
             }
 
 
             //Medium Difficulty
             else if (_difficulty == 2)
             {
-                //DEBUGGING
-                int counter = 0;
+                tempHolder = new Gameplay(simulatedGame);
 
+                //Check if any next move will result in a win
                 for (int i = 1; i <= simulatedGame.Columns; i++)
                 {
-                    //Check if any next move will result in a win
-                    if (simulatedGame.Cells[i] == "|_|")
-                    {
-                        tempHolder = new Gameplay(simulatedGame);
-
-                        //Simulate inserting a token
-                        simulatedGame.InsertToken(this.Token, i);
-
-                        //DEBUGGING
-                        Console.WriteLine("Count outside nested1: " + counter);
-                        counter++;
-                        simulatedGame.DrawBoard(this.Token, opponent.Token);
-
-                        //If the placement results in a win return it
-                        if (simulatedGame.Winner(this))
-                        {
-                            //DEBUGGING
-                            Console.WriteLine("Win returned");
+                    //Check if a column is full (to remove as option for random placement)
+                    if(simulatedGame.Cells[i - 1] != "|_|")
+                        notFull.Remove(i); 
+                    
+                    if (simulatedGame.Cells[i - 1] == "|_|")
+                        if (Simulation.SimulateNextMove(this, opponent, simulatedGame, i))
                             return i;
-                        }
 
-                        //Reset the simulated gameboard to it's original state
-                        simulatedGame = new Gameplay(tempHolder);
-
-                    }
-
-
-                    //Check if any next move will result in opponent win
-
-                    if (simulatedGame.Cells[i] == "|_|")
-                    {
-                        tempHolder = new Gameplay(simulatedGame);
-
-                        //Simulate inserting a token
-                        simulatedGame.InsertToken(opponent.Token, i);
-
-
-                        //DEBUGGING
-                        Console.WriteLine();
-                        simulatedGame.DrawBoard(this.Token, opponent.Token);
-
-                        //If the placement results in a win, block it
-                        if (simulatedGame.Winner(opponent))
-                        {
-                            //DEBUGGING
-                            Console.WriteLine("Opponent Win Block");
-                            return i;
-                        }
-
-                        //Reset the simulated gameboard to it's original state
-                        simulatedGame = new Gameplay(tempHolder);
-
-                    }
-
+                    simulatedGame = new Gameplay(tempHolder);
                 }
 
-                //If all strategies are null, place a random token
-                return random.Next(1, 8);
+                //Check if any next move will result in opponent win
+                for (int i = 1; i <= simulatedGame.Columns; i++)
+                {
+                    Console.WriteLine(i);
+                    if (simulatedGame.Cells[i - 1] == "|_|")
+                        if (Simulation.SimulateNextMove(opponent, this, simulatedGame, i))
+                            return i;
+
+                    simulatedGame = new Gameplay(tempHolder);
+                }
+
+                //If all strategies are null, place a random token in an available column
+                int randomChoice = random.Next(notFull.Count);
+                return notFull[randomChoice];
             }
 
 
             //Hard difficulty 
             else if (_difficulty == 3)
             {
-                int count = 0;
+                tempHolder = new Gameplay(simulatedGame);
+
                 //Check for win in one first, then simulate two moves
                 for (int i = 0; i < 2; i++)
                 {
                     for (int j = 1; j <= simulatedGame.Columns; j++)
                     {
+                        //Check if a column is full (to remove as option for random placement)
+                        if (simulatedGame.Cells[j - 1] != "|_|")
+                            notFull.Remove(j);
+
                         //Check if next move will result in a win
-                        if (simulatedGame.Cells[j] == "|_|")
-                        {
-                            tempHolder = new Gameplay(simulatedGame);
-
-                            //Simulate inserting a token
-                            simulatedGame.InsertToken(this.Token, j);
-
-                            //DEBUGGING
-                            Console.WriteLine();
-                            simulatedGame.DrawBoard(this.Token, opponent.Token);
-                            count++;
-                            Console.WriteLine(count);
-
-                            //If the placement results in a win return it
-                            if (simulatedGame.Winner(this))
-                            {
-                                //DEBUGGING
-                                Console.WriteLine("Win returned");
+                        if (simulatedGame.Cells[j - 1] == "|_|")
+                            if (Simulation.SimulateNextMove(this, opponent, simulatedGame, j))
                                 return j;
-                            }
 
-
-                            if (i == 1)
-                            {
-
-                                //Create a second simulation with added simulated token
-                                Gameplay simulatedGame2 = new Gameplay(simulatedGame);
-
-                                for (int k = 1; k <= simulatedGame2.Columns; k++)
-                                {
-                                    if (simulatedGame2.Cells[k] == "|_|")
-                                    {
-                                        simulatedGame2.InsertToken(this.Token, k);
-
-                                        //DEBUGGING
-                                        Console.WriteLine();
-                                        simulatedGame2.DrawBoard(this.Token, opponent.Token);
-                                        count++;
-                                        Console.WriteLine(count);
-
-                                        if (simulatedGame2.Winner(this))
-                                        {
-                                            //DEBUGGING
-                                            Console.WriteLine("Win returned");
-                                            return j;
-                                        }
-                                    }
-                                    //Reset the second simulated game
-                                    simulatedGame2 = new Gameplay(simulatedGame);
-                                }
-
-                            }
-
-                            //Reset the simulated gameboard to it's original state
-                            simulatedGame = new Gameplay(tempHolder);
-
-                        }
-
-
-                        //Check if any move will result in opponent win
-
-                        if (simulatedGame.Cells[j] == "|_|")
+                        //Check for win in 2 moves
+                        if (i == 1)
                         {
-                            tempHolder = new Gameplay(simulatedGame);
+                            //Create a second simulation
+                            Gameplay simulatedGame2 = new Gameplay(simulatedGame);
 
-                            //Simulate inserting a token
-                            simulatedGame.InsertToken(opponent.Token, j);
-                            //simulatedGame.InsertToken(this.Token, i + 1);
-
-
-                            //DEBUGGING
-                            Console.WriteLine();
-                            simulatedGame.DrawBoard(this.Token, opponent.Token);
-                            count++;
-                            Console.WriteLine(count);
-
-                            //If the placement results in a win, block it
-                            if (simulatedGame.Winner(opponent))
+                            for (int k = 1; k <= simulatedGame2.Columns; k++)
                             {
-                                //DEBUGGING
-                                Console.WriteLine("Opponent Win Block");
-                                return j;
+                                //Check if any next move will result in a win
+                                if (simulatedGame2.Cells[k - 1] == "|_|")
+                                    if (Simulation.SimulateNextMove(this, opponent, simulatedGame2, k))
+                                        return j;
+
+                                //Reset the second simulated game
+                                simulatedGame2 = new Gameplay(simulatedGame);
                             }
-
-                            if (i == 2)
-                            {
-                                //Create a second simulation with added simulated token
-                                Gameplay simulatedGame2 = new Gameplay(simulatedGame);
-
-                                for (int k = 1; k <= simulatedGame2.Columns; k++)
-                                {
-                                    if (simulatedGame2.Cells[k] == "|_|")
-                                    {
-                                        simulatedGame2.InsertToken(opponent.Token, k);
-
-                                        //DEBUGGING
-                                        Console.WriteLine();
-                                        simulatedGame2.DrawBoard(this.Token, opponent.Token);
-                                        count++;
-                                        Console.WriteLine(count);
-
-                                        if (simulatedGame2.Winner(opponent))
-                                        {
-                                            //DEBUGGING
-                                            Console.WriteLine("Win returned");
-                                            return j;
-                                        }
-                                    }
-                                    //Reset the second simulated game
-                                    simulatedGame2 = new Gameplay(simulatedGame);
-                                }
-                            }
-
-
-                            //Reset the simulated gameboard to it's original state
-                            simulatedGame = new Gameplay(tempHolder);
-
                         }
-
+                        //Reset the simulated gameboard to it's original state
+                        simulatedGame = new Gameplay(tempHolder);
                     }
                 }
-
-                //If all strategies are null, place a random token
-                return random.Next(1, 8);
+                //If all strategies are null, place a random token in an available column
+                int randomChoice = random.Next(notFull.Count);
+                return notFull[randomChoice];
             }
 
+
             //Very hard difficulty
-            //Hard difficulty 
             else
             {
-                int count = 0;
-                //Check for win in one first, then simulate two moves
+                tempHolder = new Gameplay(simulatedGame);
+
+                //Check for win in one first, then simulate the opponents move, then simulate following move
                 for (int i = 0; i < 3; i++)
                 {
                     for (int j = 1; j <= simulatedGame.Columns; j++)
                     {
+                        //Check if a column is full (to remove as option for random placement)
+                        if (simulatedGame.Cells[j - 1] != "|_|")
+                            notFull.Remove(j);
+
                         //Check if next move will result in a win
-                        if (simulatedGame.Cells[j] == "|_|")
+                        if (simulatedGame.Cells[j - 1] == "|_|")
                         {
-                            tempHolder = new Gameplay(simulatedGame);
-
-                            //Simulate inserting a token
-                            simulatedGame.InsertToken(this.Token, j);
-
-                            //DEBUGGING
-                            Console.WriteLine();
-                            simulatedGame.DrawBoard(this.Token, opponent.Token);
-                            count++;
-                            Console.WriteLine(count);
-
-                            //If the placement results in a win return it
-                            if (simulatedGame.Winner(this))
-                            {
-                                //DEBUGGING
-                                Console.WriteLine("Win returned");
+                            if (Simulation.SimulateNextMove(this, opponent, simulatedGame, j))
                                 return j;
-                            }
 
-
-                            if (i == 1)
+                            if (i >= 1)
                             {
-                                //Create a second simulation with added simulated token
+                                //Create a second simulation
                                 Gameplay simulatedGame2 = new Gameplay(simulatedGame);
 
                                 for (int k = 1; k <= simulatedGame2.Columns; k++)
                                 {
-                                    if (simulatedGame2.Cells[k] == "|_|")
-                                    {
-                                        simulatedGame2.InsertToken(this.Token, k);
-
-                                        //DEBUGGING
-                                        Console.WriteLine();
-                                        simulatedGame2.DrawBoard(this.Token, opponent.Token);
-                                        count++;
-                                        Console.WriteLine(count);
-
-                                        if (simulatedGame2.Winner(this))
-                                        {
-                                            //DEBUGGING
-                                            Console.WriteLine("Win returned");
+                                    if (simulatedGame2.Cells[k - 1] == "|_|")
+                                        if (Simulation.SimulateNextMove(opponent, this, simulatedGame2, k))
                                             return j;
-                                        }
 
 
-                                        if (i == 2)
-                                        {
-                                            //Create a third simulation with added simulated token
-                                            Gameplay simulatedGame3 = new Gameplay(simulatedGame2);
-                                            for (int l = 1; l <= simulatedGame3.Columns; l++)
-                                            {
-                                                if (simulatedGame3.Cells[l] == "|_|")
-                                                {
-                                                    simulatedGame3.InsertToken(opponent.Token, l);
-
-                                                    //DEBUGGING
-                                                    Console.WriteLine();
-                                                    simulatedGame3.DrawBoard(this.Token, opponent.Token);
-                                                    count++;
-                                                    Console.WriteLine(count);
-
-                                                    if (simulatedGame3.Winner(opponent))
-                                                    {
-                                                        //DEBUGGING
-                                                        Console.WriteLine("Win returned");
-                                                        return j;
-                                                    }
-                                                }
-                                                //Reset the third simulated game
-                                                simulatedGame3 = new Gameplay(simulatedGame2);
-                                            }
-                                        }
-                                        //Reset the second simulated game
-                                        simulatedGame2 = new Gameplay(simulatedGame);
-                                    }
-                                }
-                            }
-
-                                //Reset the simulated gameboard to it's original state
-                                simulatedGame = new Gameplay(tempHolder);
-
-
-                            //Check if any move will result in opponent win
-
-                            if (simulatedGame.Cells[j] == "|_|")
-                            {
-                                tempHolder = new Gameplay(simulatedGame);
-
-                                //Simulate inserting a token
-                                simulatedGame.InsertToken(opponent.Token, j);
-                                //simulatedGame.InsertToken(this.Token, i + 1);
-
-
-                                //DEBUGGING
-                                Console.WriteLine();
-                                simulatedGame.DrawBoard(this.Token, opponent.Token);
-                                count++;
-                                Console.WriteLine(count);
-
-                                //If the placement results in a win, block it
-                                if (simulatedGame.Winner(opponent))
-                                {
-                                    //DEBUGGING
-                                    Console.WriteLine("Opponent Win Block");
-                                    return j;
-                                }
-
-                                if (i == 1)
-                                {
-                                    //Create a second simulation with added simulated token
-                                    Gameplay simulatedGame2 = new Gameplay(simulatedGame);
-
-                                    for (int k = 1; k <= simulatedGame2.Columns; k++)
+                                    if (i == 2)
                                     {
-                                        if (simulatedGame2.Cells[k] == "|_|")
+                                        //Create a third simulation
+                                        Gameplay simulatedGame3 = new Gameplay(simulatedGame2);
+
+                                        for (int l = 1; l <= simulatedGame3.Columns; l++)
                                         {
-                                            simulatedGame2.InsertToken(opponent.Token, k);
+                                            if (simulatedGame3.Cells[l - 1] == "|_|")
+                                                if (Simulation.SimulateNextMove(this, opponent, simulatedGame3, l))
+                                                    return j;
 
-                                            //DEBUGGING
-                                            Console.WriteLine();
-                                            simulatedGame2.DrawBoard(this.Token, opponent.Token);
-                                            count++;
-                                            Console.WriteLine(count);
-
-                                            if (simulatedGame2.Winner(opponent))
-                                            {
-                                                //DEBUGGING
-                                                Console.WriteLine("Win returned");
-                                                return j;
-                                            }
-
-                                            if (i == 2)
-                                            {
-                                                //Create a third simulation with added simulated token
-                                                Gameplay simulatedGame3 = new Gameplay(simulatedGame2);
-                                                for (int l = 1; l <= simulatedGame3.Columns; l++)
-                                                {
-                                                    if (simulatedGame3.Cells[l] == "|_|")
-                                                    {
-                                                        simulatedGame3.InsertToken(opponent.Token, l);
-
-                                                        //DEBUGGING
-                                                        Console.WriteLine();
-                                                        simulatedGame3.DrawBoard(this.Token, opponent.Token);
-                                                        count++;
-                                                        Console.WriteLine(count);
-
-                                                        if (simulatedGame3.Winner(opponent))
-                                                        {
-                                                            //DEBUGGING
-                                                            Console.WriteLine("Win returned");
-                                                            return j;
-                                                        }
-                                                    }
-                                                    //Reset the third simulated game
-                                                    simulatedGame3 = new Gameplay(simulatedGame2);
-                                                }
-                                            }
+                                            //Reset the simulated gameboard to it's original state
+                                            simulatedGame3 = new Gameplay(simulatedGame2);
                                         }
-                                        //Reset the second simulated game
-                                        simulatedGame2 = new Gameplay(simulatedGame);
                                     }
+                                    //Reset the simulated gameboard to it's original state
+                                    simulatedGame2 = new Gameplay(simulatedGame);
                                 }
-
-                                //Reset the simulated gameboard to it's original state
-                                simulatedGame = new Gameplay(tempHolder);
                             }
+                        }
+                        //Reset the simulated gameboard to it's original state
+                        simulatedGame = new Gameplay(tempHolder);
+                    }
 
+                    if (i == 0)
+                    {
+                        //Check if  next move will result in opponent win
+                        for (int m = 1; m <= simulatedGame.Columns; m++)
+                        {
+                            if (simulatedGame.Cells[m - 1] == "|_|")
+                                if (Simulation.SimulateNextMove(opponent, this, simulatedGame, m))
+                                    return m;
+
+                            simulatedGame = new Gameplay(tempHolder);
                         }
                     }
 
                 }
-                //If all strategies are null, place a random token
-                return random.Next(1, 8);
+                //If all strategies are null, place a random token in an available column
+                int randomChoice = random.Next(notFull.Count);
+                return notFull[randomChoice];
             }
         }
 
-        class Human : Player
+
+
+        public class Human : Player
         {
             private readonly int playerDesignation = 1;
             public Human(string name, string token) : base(name, token)
             {
                 playerDesignation++;
             }
+
         }
 
 
-        class Board
+        public class Board
         {
             public List<string> Cells { get; set; }
             public int Rows { get; set; }
@@ -484,7 +261,7 @@ namespace Braaksma_Connect_Four
         }
 
 
-        class Gameplay : Board
+        public class Gameplay : Board
         {
             public static int turnCount;
 
@@ -540,7 +317,7 @@ namespace Braaksma_Connect_Four
                     //Replace the blank square with the players token in the gameboard (<List>)
                     for (int i = (Cells.Count - 1) - (Columns - selection); i >= 0; i -= Columns)
                     {
-                        if (Cells[i] != token && Cells[i] == "|_|")
+                        if (Cells[i] == "|_|")
                         {
                             Cells[i] = token;
                             columnFull = false;
@@ -629,6 +406,27 @@ namespace Braaksma_Connect_Four
                             }
                         }
                     }
+                }
+                return false;
+            }
+        }
+
+        public static class Simulation
+        {
+            public static bool SimulateNextMove(Player player, Player opponent, Gameplay simulatedGame, int choice)
+            {
+
+                if (simulatedGame.Cells[choice - 1] == "|_|")
+                {
+                    //Simulate inserting a token
+                    simulatedGame.InsertToken(player.Token, choice);
+
+                    //DEBUGGING
+                    Console.WriteLine();
+                    simulatedGame.DrawBoard(player.Token, opponent.Token);
+
+                    if (simulatedGame.Winner(player))
+                        return true;
                 }
                 return false;
             }
